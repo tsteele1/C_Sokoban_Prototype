@@ -2,6 +2,8 @@
 #define COMPONENTS_H
 #define MAX_ANIMS 4
 #define MAX_ANIM_FRAMES 4
+#define WALK_TIME 0.125
+#define BUMP_TIME 0.250
 
 struct Frame {
     float atlasX;
@@ -18,6 +20,11 @@ struct Animator {
     float animTime;
 };
 
+enum MoveAnimType {
+    WALK,
+    BUMP
+};
+
 struct Renderer {
     float spriteWidth;
     float spriteHeight;
@@ -25,7 +32,11 @@ struct Renderer {
     float atlasY;
     float spriteOffsetX;
     float spriteOffsetY;
+    float savedOffsetX;
+    float savedOffsetY;
     float moveAnimTime;
+    float maxMoveAnimTime;
+    MoveAnimType moveAnimType;
 };
 
 struct Pushable {

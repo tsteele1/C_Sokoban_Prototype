@@ -42,27 +42,30 @@ void renderDrawSprites(Texture *atlas, ECS *ecs) {
 }
 
 void renderUpdateOffsets(ECS *ecs) {
-    const float MAX_MOVE_TIME = 0.75;
-
     for (int i = 0; i < ecs->renderSet.size; i++) {
+        float MAX_MOVE_TIME = ecs->renderers[i].maxMoveAnimTime;
 
         if (ecs->renderers[i].spriteOffsetX != 0) {
             ecs->renderers[i].moveAnimTime = ecs->renderers[i].moveAnimTime + GetFrameTime() > MAX_MOVE_TIME ? MAX_MOVE_TIME : ecs->renderers[i].moveAnimTime + GetFrameTime();
 
-            ecs->renderers[i].spriteOffsetX = ecs->renderers[i].spriteOffsetX * (MAX_MOVE_TIME - ecs->renderers[i].moveAnimTime);
+            MoveAnimType moveAnim = ecs->renderers[i].moveAnimType;
+            float moveAnimTime = ecs->renderers[i].moveAnimTime;
+            bool bumping = moveAnim == BUMP && moveAnimTime < MAX_MOVE_TIME/2;
+            float animProgress = bumping ? moveAnimTime/MAX_MOVE_TIME : (MAX_MOVE_TIME - moveAnimTime)/MAX_MOVE_TIME;
+            ecs->renderers[i].spriteOffsetX = ecs->renderers[i].savedOffsetX * animProgress;
 
-            float tempX = ecs->renderers[i].spriteOffsetX;
-            tempX = tempX < 0 ? -tempX : tempX;
-            if (tempX < 0.5) ecs->renderers[i].spriteOffsetX = 0;
+            if (MAX_MOVE_TIME - moveAnimTime < 0.01) ecs->renderers[i].spriteOffsetX = 0;
         }
         else if (ecs->renderers[i].spriteOffsetY != 0) {
             ecs->renderers[i].moveAnimTime = ecs->renderers[i].moveAnimTime + GetFrameTime() > MAX_MOVE_TIME ? MAX_MOVE_TIME : ecs->renderers[i].moveAnimTime + GetFrameTime();
 
-            ecs->renderers[i].spriteOffsetY = ecs->renderers[i].spriteOffsetY * (MAX_MOVE_TIME - ecs->renderers[i].moveAnimTime);
+            MoveAnimType moveAnim = ecs->renderers[i].moveAnimType;
+            float moveAnimTime = ecs->renderers[i].moveAnimTime;
+            bool bumping = moveAnim == BUMP && moveAnimTime < MAX_MOVE_TIME/2;
+            float animProgress = bumping ? moveAnimTime/MAX_MOVE_TIME : (MAX_MOVE_TIME - moveAnimTime)/MAX_MOVE_TIME;
+            ecs->renderers[i].spriteOffsetY = ecs->renderers[i].savedOffsetY * animProgress;
 
-            float tempY = ecs->renderers[i].spriteOffsetY;
-            tempY = tempY < 0 ? -tempY : tempY;
-            if (tempY < 0.5) ecs->renderers[i].spriteOffsetY = 0;
+            if (MAX_MOVE_TIME - moveAnimTime < 0.01) ecs->renderers[i].spriteOffsetY = 0;
         }
     }
 }

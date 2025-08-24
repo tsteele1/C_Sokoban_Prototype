@@ -18,15 +18,13 @@
 // SHORT TERM GOALS:
 //  0. Grid Alignment:
 //      - Change render so it doesn't use magic numbers
-//  1. Separate bump functionality from the boolean check
-//      - Going to have to find some shenanigans to get it
-//        to look pretty in code
-//  2. FILE I/O:
+//  1. FILE I/O:
 //      - Put player info in its own separate file (player.ec)
 //      - Find ways to load in prefabs for levels, and then use level files
 //        to load in those prefabs
-//  3. Holes:
+//  2. Holes:
 //      - How do we implement them?
+//  3. Undo:
 //  4. Screen Sizing:
 //  5. SFX / Music:
 //  6. Menu:
@@ -114,6 +112,7 @@ int main() {
         ecs.renderers[i].spriteOffsetX = 0;
         ecs.renderers[i].spriteOffsetY = 0;
         ecs.renderers[i].moveAnimTime = 0;
+        ecs.renderers[i].moveAnimType = WALK;
     }
 
     // Game Loop
@@ -122,8 +121,8 @@ int main() {
             case PLAYER:
                 // Update
                 renderUpdateAnimations(&ecs);
-                renderUpdateOffsets(&ecs);
                 inputUpdatePlayerMove(&ecs, &grid, &gameState);
+                renderUpdateOffsets(&ecs);
 
                 // Draw
                 BeginDrawing();
@@ -144,10 +143,6 @@ int main() {
                 EndDrawing();
                 break;
         }
-    }
-
-    for (int i = 0; i < ecs.positionSet.size; i++) {
-        std::cout << ecs.positions[i].z << ' ' << ecs.positionSet.dense[i] << '\n';
     }
 
     UnloadTexture(atlas);

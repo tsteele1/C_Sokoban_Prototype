@@ -4,29 +4,68 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, GameState *state) {
     const int DX = 1;
     const int DY = 1;
     const int playerDepth = 0;
+    const float bumpModifier = 1.5;
 
     bool keyPressed = false;
-    int playerX = ecs->positions[ecs->positionSet.sparse[0]].x;
-    int playerY = ecs->positions[ecs->positionSet.sparse[0]].y;
-    if (IsKeyPressed(KEY_RIGHT) && gridPushableMap(playerX, playerY, DX, 0, playerDepth, ecs, grid)) {
+    int positionIdx = ecs->positionSet.sparse[0];
+    int renderIdx = ecs->renderSet.sparse[0];
+    int playerX = ecs->positions[positionIdx].x;
+    int playerY = ecs->positions[positionIdx].y;
+    if (IsKeyPressed(KEY_RIGHT)) {
+        if (gridPushableMap(playerX, playerY, DX, 0, playerDepth, ecs, grid)) {
+            gridPushBoxesMap(playerX, playerY, DX, 0, ecs, grid);
+            keyPressed = true;
+        }
+        else {
+            ecs->renderers[renderIdx].spriteOffsetX = DX * grid->unitWidth * bumpModifier;
+            ecs->renderers[renderIdx].savedOffsetX = DX * grid->unitWidth * bumpModifier;
+            ecs->renderers[renderIdx].moveAnimTime = 0;
+            ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
+            ecs->renderers[renderIdx].moveAnimType = BUMP;
+        }
         ecs->animators[ecs->animSet.sparse[0]].animIdx = 3;
-        gridPushBoxesMap(playerX, playerY, DX, 0, ecs, grid);
-        keyPressed = true;
     }
-    else if (IsKeyPressed(KEY_LEFT) && gridPushableMap(playerX, playerY, -DX, 0, playerDepth, ecs, grid)) {
+    else if (IsKeyPressed(KEY_LEFT)) {
+        if (gridPushableMap(playerX, playerY, -DX, 0, playerDepth, ecs, grid)) {
+            gridPushBoxesMap(playerX, playerY, -DX, 0, ecs, grid);
+            keyPressed = true;
+        }
+        else {
+            ecs->renderers[renderIdx].spriteOffsetX = -DX * grid->unitWidth * bumpModifier;
+            ecs->renderers[renderIdx].savedOffsetX = -DX * grid->unitWidth * bumpModifier;
+            ecs->renderers[renderIdx].moveAnimTime = 0;
+            ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
+            ecs->renderers[renderIdx].moveAnimType = BUMP;
+        }
         ecs->animators[ecs->animSet.sparse[0]].animIdx = 2;
-        gridPushBoxesMap(playerX, playerY, -DX, 0, ecs, grid);
-        keyPressed = true;
     } 
-    else if (IsKeyPressed(KEY_UP) && gridPushableMap(playerX, playerY, 0, -DY, playerDepth, ecs, grid)) {
+    else if (IsKeyPressed(KEY_UP)) {
+        if (gridPushableMap(playerX, playerY, 0, -DY, playerDepth, ecs, grid)) {
+            gridPushBoxesMap(playerX, playerY, 0, -DY, ecs, grid);
+            keyPressed = true;
+        }
+        else {
+            ecs->renderers[renderIdx].spriteOffsetY = -DY * grid->unitHeight * bumpModifier;
+            ecs->renderers[renderIdx].savedOffsetY = -DY * grid->unitWidth * bumpModifier;
+            ecs->renderers[renderIdx].moveAnimTime = 0;
+            ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
+            ecs->renderers[renderIdx].moveAnimType = BUMP;
+        }
         ecs->animators[ecs->animSet.sparse[0]].animIdx = 1;
-        gridPushBoxesMap(playerX, playerY, 0, -DY, ecs, grid);
-        keyPressed = true;
     }
-    else if (IsKeyPressed(KEY_DOWN) && gridPushableMap(playerX, playerY, 0, DY, playerDepth, ecs, grid)) {
+    else if (IsKeyPressed(KEY_DOWN)) {
+        if (gridPushableMap(playerX, playerY, 0, DY, playerDepth, ecs, grid)) { 
+            gridPushBoxesMap(playerX, playerY, 0, DY, ecs, grid);
+            keyPressed = true;
+        }
+        else {
+            ecs->renderers[renderIdx].spriteOffsetY = DY * grid->unitHeight * bumpModifier;
+            ecs->renderers[renderIdx].savedOffsetY = DY * grid->unitHeight * bumpModifier;
+            ecs->renderers[renderIdx].moveAnimTime = 0;
+            ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
+            ecs->renderers[renderIdx].moveAnimType = BUMP;
+        }
         ecs->animators[ecs->animSet.sparse[0]].animIdx = 0;
-        gridPushBoxesMap(playerX, playerY, 0, DY, ecs, grid);
-        keyPressed = true;
     }
 
     if (keyPressed) {
