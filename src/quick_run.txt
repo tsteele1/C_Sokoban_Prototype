@@ -1,1 +1,0 @@
-zig c++ -o soko.exe soko.cpp render.cpp ecs.cpp sparse_set.cpp level_io.cpp -I"C:\raylib\src" "C:\raylib\src\libraylib.a" -lopengl32 -lgdi32 -lwinmm
