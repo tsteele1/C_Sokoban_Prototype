@@ -169,9 +169,13 @@ void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, Grid *grid) {
 
         ecs->positions[positionId].x += dx;
         ecs->positions[positionId].y += dy;
-        ecs->renderers[renderId].spriteOffsetX = -dx;
-        ecs->renderers[renderId].spriteOffsetY = -dy;
+        ecs->renderers[renderId].spriteOffsetX = -dx * grid->unitWidth;
+        ecs->renderers[renderId].savedOffsetX = -dx * grid->unitWidth;
+        ecs->renderers[renderId].spriteOffsetY = -dy * grid->unitHeight;
+        ecs->renderers[renderId].savedOffsetY = -dy * grid->unitHeight;
         ecs->renderers[renderId].moveAnimTime = 0;
+        ecs->renderers[renderId].moveAnimType = WALK;
+        ecs->renderers[renderId].maxMoveAnimTime = WALK_TIME;
 
         x += dxMap;
         y += dyMap;
@@ -199,8 +203,12 @@ void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, Grid *grid) {
         ecs->positions[positionId].x += dx;
         ecs->positions[positionId].y += dy;
         ecs->renderers[renderId].spriteOffsetX = -dx * grid->unitWidth;
+        ecs->renderers[renderId].savedOffsetX = -dx * grid->unitWidth;
         ecs->renderers[renderId].spriteOffsetY = -dy * grid->unitHeight;
+        ecs->renderers[renderId].savedOffsetY = -dy * grid->unitHeight;
         ecs->renderers[renderId].moveAnimTime = 0;
+        ecs->renderers[renderId].moveAnimType = WALK;
+        ecs->renderers[renderId].maxMoveAnimTime = WALK_TIME;
 
         x += dx;
         y += dy;
