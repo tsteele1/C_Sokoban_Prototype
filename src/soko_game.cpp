@@ -65,11 +65,21 @@
 //      - Button to move to a level loader.
 //          - Select a level grid to display on screen. 
 //      - Button to exit.
-//  KNOWN BUGS:
+//  KNOWN BUGS / ISSUES:
 //      Need to prevent input while movements are happening.
 //          Consider adding an input buffer:
 //              Record inputs the player made within a window of time
 //              right before the player reaches their previous destination.
+//
+//      Need to find a way to finish animations before we certain changes:
+//          e.g. Holes should not fill until the box moves overtop of them.
+//              We can safely do this now because the hole will never
+//              be overwritten by a box since we split their spatial
+//              representations.
+//          I think the easieset solution would be to remove the hole's
+//          actions until a special game state that occurs after animations
+//          have finished.
+//          e.g. player -> holes -> goals -> repeat.
 
 int main() {
     // const info
