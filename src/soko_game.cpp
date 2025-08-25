@@ -66,20 +66,9 @@
 //          - Select a level grid to display on screen. 
 //      - Button to exit.
 //  KNOWN BUGS / ISSUES:
-//      Need to prevent input while movements are happening.
-//          Consider adding an input buffer:
-//              Record inputs the player made within a window of time
-//              right before the player reaches their previous destination.
-//
-//      Need to find a way to finish animations before we certain changes:
-//          e.g. Holes should not fill until the box moves overtop of them.
-//              We can safely do this now because the hole will never
-//              be overwritten by a box since we split their spatial
-//              representations.
-//          I think the easieset solution would be to remove the hole's
-//          actions until a special game state that occurs after animations
-//          have finished.
-//          e.g. player -> holes -> goals -> repeat.
+//      Consider adding an input buffer:
+//          Record inputs the player made within a window of time
+//          right before the player reaches their previous destination.
 
 int main() {
     // const info
@@ -148,18 +137,22 @@ int main() {
 
     levelLoad(levelName, &ecs, &eIdQ, &grid);
 
+    eIdQ.currentId++;
     TileMap tileMap;
     Tile tile;
+    Vector3 tilePosition = {1, 5, 0};
     tilemapInit(gridWidth, gridHeight, gridOffsetX, gridOffsetY, UNIT_WIDTH, UNIT_HEIGHT, &tileMap);
     tile = (Tile) {11, 0, eIdQ.currentId};
-    tileMap.map[5 * tileMap.width + 1] = tile;
+    tileMap.map[((int) tilePosition.y) * tileMap.width + ((int) tilePosition.x)] = tile;
     Hole hole = {
         .storedType = NO_BOX,
         .boxDirX = 0,
         .boxDirY = 0,
         .boxId = -1
     };
+    ecsAddPosition(eIdQ.currentId, &tilePosition, &ecs); 
     ecsAddHole(eIdQ.currentId, &hole, &ecs);
+    eIdQ.currentId++;
 
     // z sorting
     SetRandomSeed(GetTime() * 1000);
@@ -192,15 +185,42 @@ int main() {
                 renderDrawSprites(&atlas, &ecs, &grid);
                 EndDrawing();
                 break;
+
+            case AWAIT_MOVE_END:
+                renderUpdateAnimations(&ecs);
+                renderUpdateOffsets(&ecs);
+
+                gameState = HOLES;
+                for (int i = 0; i < ecs.renderSet.size; i++) {
+                    if (ecs.renderers[i].spriteOffsetX != 0 || ecs.renderers[i].spriteOffsetY != 0) {
+                        gameState = AWAIT_MOVE_END;
+                        break;
+                    }
+                }
+
+                BeginDrawing();
+                ClearBackground(RAYWHITE);
+                renderDrawTilemap(&atlas, &tileMap);
+                renderDrawSprites(&atlas, &ecs, &grid);
+                EndDrawing();
+                break;
+
+            case HOLES:
+                holeUpdate(&ecs, &grid, &tileMap);
+                gameState = GOALCHECK;
+                break;
+ 
             case GOALCHECK:
                 goalCheckLevelEnd(&ecs, &grid, &gameState);
                 break;
+
             case LEVEL_END:
                 renderUpdateAnimations(&ecs);
                 renderUpdateOffsets(&ecs);
 
                 BeginDrawing();
                 ClearBackground(RAYWHITE);
+                renderDrawTilemap(&atlas, &tileMap);
                 renderDrawSprites(&atlas, &ecs, &grid);
                 EndDrawing();
                 break;

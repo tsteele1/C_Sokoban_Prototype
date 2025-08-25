@@ -69,6 +69,6 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
     }
 
     if (keyPressed) {
-        *state = GOALCHECK;
+        *state = AWAIT_MOVE_END;
     }
 }

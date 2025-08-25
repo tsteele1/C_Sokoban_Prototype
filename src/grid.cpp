@@ -196,6 +196,12 @@ void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap
 
         x += dxMap;
         y += dyMap;
+
+        int tileIdAtDest = tilemapEntityAtMap(x, y, tileMap);
+        if (tileIdAtDest >= 0 && ecs->holeSet.sparse[tileIdAtDest] >= 0) {
+            holeSetUpDxDy(tileIdAtDest, dx, dy, ecs);
+        }
+
         tempId = grid->map[y * grid->width + x];
         grid->map[y * grid->width + x] = entityId;
         i++;
@@ -231,13 +237,12 @@ void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, 
         y += dy;
 
         int tileIdAtDest = tilemapEntityAtMap(x, y, tileMap);
-        if (tileIdAtDest < 0 || ecs->holeSet.sparse[tileIdAtDest] < 0 || ecs->holes[ecs->holeSet.sparse[tileIdAtDest]].storedType != NO_BOX) {
-
-            tempId = grid->map[y * grid->width + x];
-            grid->map[y * grid->width + x] = entityId;
-        } else if (tileIdAtDest >= 0 && ecs->holeSet.sparse[tileIdAtDest] >= 0) {
-            holeFillWithBox(x, y, dx, dy, entityId, tileMap, ecs);
+        if (tileIdAtDest >= 0 && ecs->holeSet.sparse[tileIdAtDest] >= 0) {
+            holeSetUpDxDy(tileIdAtDest, dx, dy, ecs);
         }
+
+        tempId = grid->map[y * grid->width + x];
+        grid->map[y * grid->width + x] = entityId;
         i++;
     }
 

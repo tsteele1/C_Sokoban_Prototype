@@ -4,7 +4,9 @@
 enum GameState {
     PLAYER,
     GOALCHECK,
-    LEVEL_END
+    LEVEL_END,
+    AWAIT_MOVE_END,
+    HOLES
 };
 
 #endif
