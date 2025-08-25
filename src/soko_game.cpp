@@ -7,6 +7,8 @@
 #include "grid.cpp"
 #include "input.cpp"
 #include "goal.cpp"
+#include "tilemap.cpp"
+#include "hole.cpp"
 
 #include "entity.h"
 #include "components.h"
@@ -16,22 +18,58 @@
 #include <cstdlib>
 
 // SHORT TERM GOALS:
-//  0. Grid Alignment:
-//      - Change render so it doesn't use magic numbers
 //  1. FILE I/O:
 //      - Put player info in its own separate file (player.ec)
 //      - Find ways to load in prefabs for levels, and then use level files
-//        to load in those prefabs
-//  2. Holes:
-//      - How do we implement them?
-//  3. Undo:
-//  4. Screen Sizing:
-//  5. SFX / Music:
-//  6. Menu:
-//  7. Level Select:
-//  8. Title Screen:
-//  9. Level Editor:
+//        to load in those prefabs and add info the prefab wouldn't have.
+//          - For example, almost every entity in the game will have a
+//            preset renderer, a preset animator, a preset pushable, etc.
+//  2. Undo:
+//      - Store the position of every entity with a history component at a 
+//        given step.
+//      - When the player presses undo, update the grid and ecs so that all
+//        entities were in the position they were previously in.
+//          - You will also have to store when the hole was filled with a box,
+//            and then when that time passes, you will have to undo the box
+//            being in the hole.
+//  3. Screen Sizing:
+//      - Set a reference resolution as a constant.
+//      - Allow the player to change the screen size, and multiply everything
+//        being renderered by a factor of (new_size/reference_size).
+//  4. SFX / Music:
+//      - Background track that loops.
+//      - When the player pushes a box.
+//      - When a box falls into a hole.
+//      - When the player uses an undo.
+//      - When the player completes a level.
+//      - More to come later.
+//  5. Menu:
+//      - Pause the game.
+//      - Give the option to quit to a new level.
+//      - Give the option to reset a level entirely.
+//  6. Level Select:
+//      - Display all levels currently loaded into the game.
+//          - Each should be a separate little box/menu item.
+//  7. Title Screen:
+//      - Title.
+//      - Options for level select and quitting the game.
+//  8. Level Editor:
+//      - Button to display all tiles.
+//          - Including a blank space indicator.
+//      - Button to select a tile.
+//          - Display it somehow.
+//      - Player can then move their mouse over the grid.
+//          - If they click their mouse button, set that space on the grid with
+//            the tile they previously selected.
+//      - Button to save the current grid.
+//      - Button to move to a level loader.
+//          - Select a level grid to display on screen. 
+//      - Button to exit.
 //  KNOWN BUGS:
+//      Need to prevent input while movements are happening.
+//          Consider adding an input buffer:
+//              Record inputs the player made within a window of time
+//              right before the player reaches their previous destination.
 
 int main() {
     // const info
@@ -100,6 +138,19 @@ int main() {
 
     levelLoad(levelName, &ecs, &eIdQ, &grid);
 
+    TileMap tileMap;
+    Tile tile;
+    tilemapInit(gridWidth, gridHeight, gridOffsetX, gridOffsetY, UNIT_WIDTH, UNIT_HEIGHT, &tileMap);
+    tile = (Tile) {11, 0, eIdQ.currentId};
+    tileMap.map[5 * tileMap.width + 1] = tile;
+    Hole hole = {
+        .storedType = NO_BOX,
+        .boxDirX = 0,
+        .boxDirY = 0,
+        .boxId = -1
+    };
+    ecsAddHole(eIdQ.currentId, &hole, &ecs);
+
     // z sorting
     SetRandomSeed(GetTime() * 1000);
     ecsZSort(&ecs);
@@ -121,13 +172,14 @@ int main() {
             case PLAYER:
                 // Update
                 renderUpdateAnimations(&ecs);
-                inputUpdatePlayerMove(&ecs, &grid, &gameState);
+                inputUpdatePlayerMove(&ecs, &grid, &tileMap, &gameState);
                 renderUpdateOffsets(&ecs);
 
                 // Draw
                 BeginDrawing();
                 ClearBackground(RAYWHITE);
-                renderDrawSprites(&atlas, &ecs);
+                renderDrawTilemap(&atlas, &tileMap);
+                renderDrawSprites(&atlas, &ecs, &grid);
                 EndDrawing();
                 break;
             case GOALCHECK:
@@ -139,13 +191,14 @@ int main() {
 
                 BeginDrawing();
                 ClearBackground(RAYWHITE);
-                renderDrawSprites(&atlas, &ecs);
+                renderDrawSprites(&atlas, &ecs, &grid);
                 EndDrawing();
                 break;
         }
     }
 
     UnloadTexture(atlas);
+    tilemapFree(&tileMap);
     gridFree(&grid);
     ecsFree(&ecs);
 

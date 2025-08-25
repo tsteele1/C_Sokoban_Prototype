@@ -1,4 +1,5 @@
 #include "grid.h"
+#include "hole.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -74,9 +75,9 @@ void gridSetFromMap(int x, int y, int id, Grid *grid) {
     grid->map[y * grid->width + x] = id;
 }
 
-bool gridPushableMap(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, Grid *grid) {
+bool gridPushableMap(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, TileMap *tileMap, Grid *grid) {
     // empty space
-    bool walkable = gridWalkableMap(x + dx, y + dy, ecs, grid);
+    bool walkable = gridWalkableMap(x + dx, y + dy, dx, dy, ecs, tileMap, grid);
     if (walkable) return true;
 
     // wall / OOB
@@ -86,7 +87,7 @@ bool gridPushableMap(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, Grid
     if (grid->pushDepth > 0 && pushDepth >= grid->pushDepth) return false;
 
     // box is there but can be pushed
-    if (gridPushableMap(x + dx, y + dy, dx, dy, pushDepth + 1, ecs, grid)) {
+    if (gridPushableMap(x + dx, y + dy, dx, dy, pushDepth + 1, ecs, tileMap, grid)) {
         return true;
     }
 
@@ -95,14 +96,14 @@ bool gridPushableMap(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, Grid
 }
 
 
-bool gridPushableWorld(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, Grid *grid) {
+bool gridPushableWorld(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, TileMap *tileMap, Grid *grid) {
     x = (x - grid->worldOffsetX) / grid->unitWidth;
     y = (y - grid->worldOffsetY) / grid->unitHeight;
     dx = dx / grid->unitWidth;
     dy = dy / grid->unitHeight;
 
     // empty space
-    bool walkable = gridWalkableMap(x + dx, y + dy, ecs, grid);
+    bool walkable = gridWalkableMap(x + dx, y + dy, dx, dy, ecs, tileMap, grid);
     if (walkable) return true;
 
     // wall / OOB
@@ -114,7 +115,7 @@ bool gridPushableWorld(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, Gr
     if (grid->pushDepth > 0 && pushDepth >= grid->pushDepth) return false;
 
     // box is there but can be pushed
-    if (gridPushableMap(x + dx, y + dy, dx, dy, pushDepth + 1, ecs, grid)) {
+    if (gridPushableMap(x + dx, y + dy, dx, dy, pushDepth + 1, ecs, tileMap, grid)) {
         return true;
     }
 
@@ -122,23 +123,39 @@ bool gridPushableWorld(int x, int y, int dx, int dy, int pushDepth, ECS *ecs, Gr
     return false;
 }
 
-bool gridWalkableWorld(int x, int y, ECS *ecs, Grid *grid) {
+bool gridWalkableWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid) {
     x = (x - grid->worldOffsetX) / grid->unitWidth;
     y = (y - grid->worldOffsetY) / grid->unitHeight;
 
     if (!gridInBoundsMap(x, y, grid->width, grid->height)) return false;
 
     int entityId = grid->map[y * grid->width + x];
-    if (entityId == -1) return true;
+    int tileMapEntityId = tilemapEntityAtMap(x, y, tileMap);
+    if (entityId < 0 && tileMapEntityId < 0) return true;
+    else if (entityId >= 0 && tileMapEntityId < 0) return false;
+
+    int holeIdx = ecs->holeSet.sparse[tileMapEntityId];
+    int movingEntityId = grid->map[(y - dy) * grid->width + (x - dx)];
+    int movingBoxIdx = ecs->boxSet.sparse[movingEntityId];
+    if (holeIdx < 0 || ecs->holes[holeIdx].storedType != NO_BOX || movingBoxIdx >= 0) return true;
 
     return false;
 }
 
-bool gridWalkableMap(int x, int y, ECS *ecs, Grid *grid) {
+bool gridWalkableMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid) {
     if (!gridInBoundsMap(x, y, grid->width, grid->height)) return false;
 
     int entityId = grid->map[y * grid->width + x];
-    if (entityId == -1) return true;
+    int tileMapEntityId = tilemapEntityAtMap(x, y, tileMap);
+    if (entityId < 0 && tileMapEntityId < 0) return true;
+    else if (entityId >= 0 && tileMapEntityId < 0) return false;
+
+    int holeIdx = ecs->holeSet.sparse[tileMapEntityId];
+    int movingEntityId = grid->map[(y - dy) * grid->width + (x - dx)];
+    int movingBoxIdx = ecs->boxSet.sparse[movingEntityId];
+    if (holeIdx < 0) return true;
+    else if (ecs->holes[holeIdx].storedType != NO_BOX) return true;
+    else if (movingBoxIdx >= 0) return true;
 
     return false;
 }
@@ -150,7 +167,7 @@ bool gridBoxAtMap(int x, int y, ECS *ecs, Grid *grid) {
     return ecs->pushSet.sparse[grid->map[y * grid->width + x]] != -1;
 }
 
-void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, Grid *grid) {
+void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid) {
     x = (x - grid->worldOffsetX) / grid->unitWidth;
     y = (y - grid->worldOffsetY) / grid->unitHeight;
 
@@ -188,7 +205,7 @@ void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, Grid *grid) {
 }
 
 
-void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, Grid *grid) {
+void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid) {
     int i = 0;
     int ox = x;
     int oy = y;
@@ -212,8 +229,15 @@ void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, Grid *grid) {
 
         x += dx;
         y += dy;
-        tempId = grid->map[y * grid->width + x];
-        grid->map[y * grid->width + x] = entityId;
+
+        int tileIdAtDest = tilemapEntityAtMap(x, y, tileMap);
+        if (tileIdAtDest < 0 || ecs->holeSet.sparse[tileIdAtDest] < 0 || ecs->holes[ecs->holeSet.sparse[tileIdAtDest]].storedType != NO_BOX) {
+
+            tempId = grid->map[y * grid->width + x];
+            grid->map[y * grid->width + x] = entityId;
+        } else if (tileIdAtDest >= 0 && ecs->holeSet.sparse[tileIdAtDest] >= 0) {
+            holeFillWithBox(x, y, dx, dy, entityId, tileMap, ecs);
+        }
         i++;
     }
 

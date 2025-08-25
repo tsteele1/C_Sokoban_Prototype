@@ -8,6 +8,7 @@ void ecsInit(int numEntities, ECS *ecs) {
     sparseInit(numEntities, &(ecs->animSet));
     sparseInit(numEntities, &(ecs->goalSet));
     sparseInit(numEntities, &(ecs->boxSet));
+    sparseInit(numEntities, &(ecs->holeSet));
 
     ecs->positions = (Vector3 *) malloc(sizeof(Vector3) * numEntities);
     ecs->renderers = (Renderer *) malloc(sizeof(Renderer) * numEntities);
@@ -15,6 +16,7 @@ void ecsInit(int numEntities, ECS *ecs) {
     ecs->animators = (Animator *) malloc(sizeof(Animator) * numEntities);
     ecs->goals = (Goal *) malloc(sizeof(Goal) * numEntities);
     ecs->boxes = (Box *) malloc(sizeof(Box) * numEntities);
+    ecs->holes = (Hole *) malloc(sizeof(Hole) * numEntities);
 }
 
 void ecsFree(ECS *ecs) {
@@ -24,6 +26,7 @@ void ecsFree(ECS *ecs) {
     free(ecs->animators);
     free(ecs->goals);
     free(ecs->boxes);
+    free(ecs->holes);
 
     sparseFree(&(ecs->positionSet));
     sparseFree(&(ecs->renderSet));
@@ -31,6 +34,7 @@ void ecsFree(ECS *ecs) {
     sparseFree(&(ecs->animSet));
     sparseFree(&(ecs->goalSet));
     sparseFree(&(ecs->boxSet));
+    sparseFree(&(ecs->holeSet));
 }
 
 void ecsAddPosition(int entityId, Vector3 *position, ECS *ecs) {
@@ -240,4 +244,23 @@ void ecsRemoveBox(int entityId, ECS *ecs) {
     int newIdx = ecs->boxSet.sparse[idxToAdjust];
 
     ecs->boxes[newIdx] = ecs->boxes[ecs->boxSet.size];
+}
+
+void ecsAddHole(int entityId, Hole *hole, ECS *ecs) {
+     if (ecs->holeSet.size + 1 > ecs->holeSet.maxSize) return;
+
+    ecs->holes[ecs->holeSet.size] = *hole;
+    sparseAdd(entityId, &(ecs->holeSet));
+}
+
+void ecsRemoveHole(int entityId, ECS *ecs) {
+    if (ecs->holeSet.size == 0) return;
+
+    int idxToAdjust = ecs->holeSet.dense[(ecs->holeSet.size)-1];
+
+    sparseRemove(entityId, &(ecs->holeSet));
+
+    int newIdx = ecs->holeSet.sparse[idxToAdjust];
+
+    ecs->holes[newIdx] = ecs->holes[ecs->holeSet.size];
 }
