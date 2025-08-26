@@ -1,8 +1,10 @@
 #include "render.h"
 #include "components.h"
+#include "grid.h"
+#include "tilemap.h"
 #include <iostream>
 
-void renderDrawSprites(Texture *atlas, ECS *ecs) {
+void renderDrawSprites(Texture *atlas, ECS *ecs, Grid *grid) {
     for (int i = 0; i < ecs->positionSet.size; i++) {        
         int entityId = ecs->positionSet.dense[i];
 
@@ -25,8 +27,8 @@ void renderDrawSprites(Texture *atlas, ECS *ecs) {
             renderer.spriteHeight
         };
         Rectangle destRect = (Rectangle) {
-            40 + (position.x * renderer.spriteWidth) + renderer.spriteOffsetX, 
-            40 + (position.y * renderer.spriteHeight) + renderer.spriteOffsetY,
+            grid->worldOffsetX + (position.x * renderer.spriteWidth) + renderer.spriteOffsetX, 
+            grid->worldOffsetY + (position.y * renderer.spriteHeight) + renderer.spriteOffsetY,
             renderer.spriteWidth,
             renderer.spriteHeight
         };
@@ -38,6 +40,38 @@ void renderDrawSprites(Texture *atlas, ECS *ecs) {
         Color tint = WHITE;
 
         DrawTexturePro(*atlas, sourceRect, destRect, center, rotation, tint);
+    }
+}
+
+void renderDrawTilemap(Texture *atlas, TileMap *tileMap) {
+    float unitWidth = (float) tileMap->unitWidth;
+    float unitHeight = (float) tileMap->unitHeight;
+
+    for (int y = 0; y < tileMap->height; y++) {
+        for (int x = 0; x < tileMap->width; x++) {
+            Tile tile = tileMap->map[y * tileMap->width + x];
+
+            Rectangle sourceRect = (Rectangle) {
+                tile.atlasX * unitWidth,
+                tile.atlasY * unitHeight,
+                unitWidth,
+                unitHeight
+            };
+            Rectangle destRect = (Rectangle) {
+                tileMap->worldOffsetX + (x * unitWidth), 
+                tileMap->worldOffsetY + (y * unitHeight),
+                unitWidth,
+                unitHeight
+            };
+            Vector2 center = (Vector2) {
+                (unitWidth/2) - 1, 
+                (unitHeight/2) - 1
+            };
+            float rotation = 0;
+            Color tint = WHITE;
+
+            DrawTexturePro(*atlas, sourceRect, destRect, center, rotation, tint);
+        }
     }
 }
 

@@ -19,6 +19,7 @@ struct ECS {
     SparseSet animSet;
     SparseSet goalSet;
     SparseSet boxSet;
+    SparseSet holeSet;
 
     Vector3 *positions;
     Renderer *renderers;
@@ -26,6 +27,7 @@ struct ECS {
     Animator *animators;
     Goal *goals;
     Box *boxes;
+    Hole *holes;
 };
 
 void ecsInit(int numEntities, ECS *ecs);
@@ -48,7 +50,10 @@ void ecsRemoveAnimator(int entityId, Animator *animator, ECS *ecs);
 void ecsAddGoal(int entityId, Goal *goal, ECS *ecs);
 void ecsRemoveGoal(int entityId, Goal *goal, ECS *ecs);
 
-void ecsAddBox(int EntityId, Box *box, ECS *ecs);
+void ecsAddBox(int entityId, Box *box, ECS *ecs);
 void ecsRemoveBox(int entityId, ECS *ecs);
+
+void ecsAddHole(int entityId, Hole *hole, ECS *ecs);
+void ecsRemoveHole(int entityId, ECS *ecs);
 
 #endif

@@ -48,7 +48,8 @@ enum BoxType {
     RED_METAL,
     BLUE_METAL,
     GREEN_METAL,
-    GREY_METAL
+    GREY_METAL,
+    NO_BOX
 };
 
 struct Goal {
@@ -59,4 +60,10 @@ struct Box {
     BoxType type;
 };
 
+struct Hole {
+    BoxType storedType;
+    int boxDirX;
+    int boxDirY;
+    int boxId;
+};
 #endif

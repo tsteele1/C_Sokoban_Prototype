@@ -1,6 +1,6 @@
 #include "input.h"
 
-void inputUpdatePlayerMove(ECS *ecs, Grid *grid, GameState *state) {
+void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *state) {
     const int DX = 1;
     const int DY = 1;
     const int playerDepth = 0;
@@ -12,8 +12,8 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, GameState *state) {
     int playerX = ecs->positions[positionIdx].x;
     int playerY = ecs->positions[positionIdx].y;
     if (IsKeyPressed(KEY_RIGHT)) {
-        if (gridPushableMap(playerX, playerY, DX, 0, playerDepth, ecs, grid)) {
-            gridPushBoxesMap(playerX, playerY, DX, 0, ecs, grid);
+        if (gridPushableMap(playerX, playerY, DX, 0, playerDepth, ecs, tileMap, grid)) {
+            gridPushBoxesMap(playerX, playerY, DX, 0, ecs, tileMap, grid);
             keyPressed = true;
         }
         else {
@@ -26,8 +26,8 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, GameState *state) {
         ecs->animators[ecs->animSet.sparse[0]].animIdx = 3;
     }
     else if (IsKeyPressed(KEY_LEFT)) {
-        if (gridPushableMap(playerX, playerY, -DX, 0, playerDepth, ecs, grid)) {
-            gridPushBoxesMap(playerX, playerY, -DX, 0, ecs, grid);
+        if (gridPushableMap(playerX, playerY, -DX, 0, playerDepth, ecs, tileMap, grid)) {
+            gridPushBoxesMap(playerX, playerY, -DX, 0, ecs, tileMap, grid);
             keyPressed = true;
         }
         else {
@@ -40,8 +40,8 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, GameState *state) {
         ecs->animators[ecs->animSet.sparse[0]].animIdx = 2;
     } 
     else if (IsKeyPressed(KEY_UP)) {
-        if (gridPushableMap(playerX, playerY, 0, -DY, playerDepth, ecs, grid)) {
-            gridPushBoxesMap(playerX, playerY, 0, -DY, ecs, grid);
+        if (gridPushableMap(playerX, playerY, 0, -DY, playerDepth, ecs, tileMap, grid)) {
+            gridPushBoxesMap(playerX, playerY, 0, -DY, ecs, tileMap, grid);
             keyPressed = true;
         }
         else {
@@ -54,8 +54,8 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, GameState *state) {
         ecs->animators[ecs->animSet.sparse[0]].animIdx = 1;
     }
     else if (IsKeyPressed(KEY_DOWN)) {
-        if (gridPushableMap(playerX, playerY, 0, DY, playerDepth, ecs, grid)) { 
-            gridPushBoxesMap(playerX, playerY, 0, DY, ecs, grid);
+        if (gridPushableMap(playerX, playerY, 0, DY, playerDepth, ecs, tileMap, grid)) { 
+            gridPushBoxesMap(playerX, playerY, 0, DY, ecs, tileMap, grid);
             keyPressed = true;
         }
         else {
@@ -69,6 +69,6 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, GameState *state) {
     }
 
     if (keyPressed) {
-        *state = GOALCHECK;
+        *state = AWAIT_MOVE_END;
     }
 }
