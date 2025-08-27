@@ -1,6 +1,16 @@
 #include "input.h"
+#include <iostream>
 
-void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *state) {
+void inputUpdatePlayerUndo(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *state, UndoHistory *undoHistory) {
+    if (!IsKeyPressed(KEY_Z)) return;
+
+    undoToTime((undoHistory->currentTime - 1), ecs, grid, tileMap, undoHistory);
+    *state = AWAIT_MOVE_END;
+}
+
+void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *state, UndoHistory *undoHistory) {
+    if (*state == AWAIT_MOVE_END) return;
+
     const int DX = 1;
     const int DY = 1;
     const int playerDepth = 0;
@@ -13,7 +23,7 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
     int playerY = ecs->positions[positionIdx].y;
     if (IsKeyPressed(KEY_RIGHT)) {
         if (gridPushableMap(playerX, playerY, DX, 0, playerDepth, ecs, tileMap, grid)) {
-            gridPushBoxesMap(playerX, playerY, DX, 0, ecs, tileMap, grid);
+            gridPushBoxesMap(playerX, playerY, DX, 0, ecs, tileMap, grid, undoHistory);
             keyPressed = true;
         }
         else {
@@ -27,7 +37,7 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
     }
     else if (IsKeyPressed(KEY_LEFT)) {
         if (gridPushableMap(playerX, playerY, -DX, 0, playerDepth, ecs, tileMap, grid)) {
-            gridPushBoxesMap(playerX, playerY, -DX, 0, ecs, tileMap, grid);
+            gridPushBoxesMap(playerX, playerY, -DX, 0, ecs, tileMap, grid, undoHistory);
             keyPressed = true;
         }
         else {
@@ -41,7 +51,7 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
     } 
     else if (IsKeyPressed(KEY_UP)) {
         if (gridPushableMap(playerX, playerY, 0, -DY, playerDepth, ecs, tileMap, grid)) {
-            gridPushBoxesMap(playerX, playerY, 0, -DY, ecs, tileMap, grid);
+            gridPushBoxesMap(playerX, playerY, 0, -DY, ecs, tileMap, grid, undoHistory);
             keyPressed = true;
         }
         else {
@@ -55,7 +65,7 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
     }
     else if (IsKeyPressed(KEY_DOWN)) {
         if (gridPushableMap(playerX, playerY, 0, DY, playerDepth, ecs, tileMap, grid)) { 
-            gridPushBoxesMap(playerX, playerY, 0, DY, ecs, tileMap, grid);
+            gridPushBoxesMap(playerX, playerY, 0, DY, ecs, tileMap, grid, undoHistory);
             keyPressed = true;
         }
         else {

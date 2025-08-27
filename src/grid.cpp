@@ -1,5 +1,6 @@
 #include "grid.h"
 #include "hole.h"
+#include "undo.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -167,7 +168,7 @@ bool gridBoxAtMap(int x, int y, ECS *ecs, Grid *grid) {
     return ecs->pushSet.sparse[grid->map[y * grid->width + x]] != -1;
 }
 
-void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid) {
+void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid, UndoHistory *undoHistory) {
     x = (x - grid->worldOffsetX) / grid->unitWidth;
     y = (y - grid->worldOffsetY) / grid->unitHeight;
 
@@ -183,16 +184,18 @@ void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap
         entityId = tempId;
         int positionId = ecs->positionSet.sparse[entityId];
         int renderId = ecs->renderSet.sparse[entityId];
+        int tempZ = ecs->positions[positionId].z;
 
-        ecs->positions[positionId].x += dx;
-        ecs->positions[positionId].y += dy;
-        ecs->renderers[renderId].spriteOffsetX = -dx * grid->unitWidth;
-        ecs->renderers[renderId].savedOffsetX = -dx * grid->unitWidth;
-        ecs->renderers[renderId].spriteOffsetY = -dy * grid->unitHeight;
-        ecs->renderers[renderId].savedOffsetY = -dy * grid->unitHeight;
+        ecs->positions[positionId].x += dxMap;
+        ecs->positions[positionId].y += dyMap;
+        ecs->renderers[renderId].spriteOffsetX = -dx;
+        ecs->renderers[renderId].savedOffsetX = -dx;
+        ecs->renderers[renderId].spriteOffsetY = -dy;
+        ecs->renderers[renderId].savedOffsetY = -dy;
         ecs->renderers[renderId].moveAnimTime = 0;
         ecs->renderers[renderId].moveAnimType = WALK;
         ecs->renderers[renderId].maxMoveAnimTime = WALK_TIME;
+        undoAddMove(entityId, x + dxMap, y + dyMap, dxMap, dyMap, tempZ, undoHistory);
 
         x += dxMap;
         y += dyMap;
@@ -208,10 +211,11 @@ void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap
     }
 
     grid->map[oy * grid->width + ox] = -1;
+    undoHistory->currentTime++;
 }
 
 
-void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid) {
+void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid, UndoHistory *undoHistory) {
     int i = 0;
     int ox = x;
     int oy = y;
@@ -222,6 +226,7 @@ void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, 
         entityId = tempId;
         int positionId = ecs->positionSet.sparse[entityId];
         int renderId = ecs->renderSet.sparse[entityId];
+        int tempZ = ecs->positions[positionId].z;
 
         ecs->positions[positionId].x += dx;
         ecs->positions[positionId].y += dy;
@@ -232,6 +237,7 @@ void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, 
         ecs->renderers[renderId].moveAnimTime = 0;
         ecs->renderers[renderId].moveAnimType = WALK;
         ecs->renderers[renderId].maxMoveAnimTime = WALK_TIME;
+        undoAddMove(entityId, x + dx, y + dy, dx, dy, tempZ, undoHistory);
 
         x += dx;
         y += dy;
@@ -247,4 +253,5 @@ void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, 
     }
 
     grid->map[oy * grid->width + ox] = -1;
+    undoHistory->currentTime++;
 }

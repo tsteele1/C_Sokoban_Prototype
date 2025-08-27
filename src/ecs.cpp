@@ -46,25 +46,38 @@ void ecsAddPosition(int entityId, Vector3 *position, ECS *ecs) {
 
 void ecsAddPositionZSorted(int entityId, Vector3 *position, ECS *ecs) {
     if (ecs->positionSet.size + 1 > ecs->positionSet.maxSize) return;
-
-    ecs->positions[ecs->positionSet.size] = *position;
-    sparseAdd(entityId, &(ecs->positionSet));
-
-    for (int i = ecs->positionSet.size - 1; i > 0; i--) {
-        Vector3 tempPosition = ecs->positions[i-1];
-        int tempId = ecs->positionSet.dense[i-1];
+ 
+    int i = ecs->positionSet.size-1;
+    while (i >= 0) {
+        Vector3 tempPosition = ecs->positions[i];
+        int tempId = ecs->positionSet.dense[i];
 
         if (tempPosition.z <= (*position).z) break;
 
-        // swap 
-        ecs->positions[i-1] = *position;
-        ecs->positionSet.dense[i-1] = entityId;
-        ecs->positionSet.sparse[entityId] = i - 1;
-
-        ecs->positions[i] = tempPosition;
-        ecs->positionSet.dense[i] = tempId;
-        ecs->positionSet.sparse[tempId] = i;
+        ecs->positions[i+1] = ecs->positions[i];
+        ecs->positionSet.dense[i+1] = tempId;
+        ecs->positionSet.sparse[tempId] = i+1;
+        i--;
     }
+
+    ecs->positions[i+1] = *position;
+    ecs->positionSet.dense[i+1] = entityId;
+    ecs->positionSet.sparse[entityId] = i+1;
+    ecs->positionSet.size++;
+
+}
+
+void ecsRemovePositionZSorted(int entityId, ECS *ecs) {
+    int positionIdx = ecs->positionSet.sparse[entityId];
+
+    for (int i = positionIdx; i < ecs->positionSet.size-1; i++) {
+        ecs->positions[i] = ecs->positions[i+1];
+        ecs->positionSet.dense[i] = ecs->positionSet.dense[i+1];
+        ecs->positionSet.sparse[ecs->positionSet.dense[i]] = i;
+    }
+
+    ecs->positionSet.sparse[entityId] = -1;
+    ecs->positionSet.size--;
 }
 
 void ecsSwapPositionIndices(int low, int high, ECS *ecs) {

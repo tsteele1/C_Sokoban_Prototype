@@ -50,6 +50,8 @@ void holeChangeSprite(int holeIdx, int holeX, int holeY, TileMap *tileMap, ECS *
             break;
 
         case NO_BOX:
+            tileMap->map[holeY * tileMap->width + holeX].atlasX = ecs->holes[holeIdx].baseAtlasX;
+            tileMap->map[holeY * tileMap->width + holeX].atlasY = ecs->holes[holeIdx].baseAtlasY;
             break;
     }
 }
@@ -67,11 +69,27 @@ void holeFillWithBox(int holeX, int holeY, int boxId, TileMap *tileMap, ECS *ecs
     if (ecs->holeSet.sparse[holeId] < 0 || ecs->boxSet.sparse[boxId] < 0) return;
 
     Box box = ecs->boxes[ecs->boxSet.sparse[boxId]];
-    ecsRemovePosition(boxId, ecs);
+    ecsRemovePositionZSorted(boxId, ecs);
 
     int holeIdx = ecs->holeSet.sparse[holeId];
     ecs->holes[holeIdx].storedType = box.type;
     ecs->holes[holeIdx].boxId = boxId;
+
+    holeChangeSprite(holeIdx, holeX, holeY, tileMap, ecs);
+}
+
+
+void holeEmptyHoleAtMap(int holeX, int holeY, TileMap *tileMap, ECS *ecs) {
+    int holeId = tilemapEntityAtMap(holeX, holeY, tileMap);
+    if (holeId < 0) return;
+
+    int holeIdx = ecs->holeSet.sparse[holeId];
+    if (holeIdx < 0) return;
+
+    ecs->holes[holeIdx].storedType = NO_BOX;
+    ecs->holes[holeIdx].boxId = -1;
+    ecs->holes[holeIdx].boxDirX = 0;
+    ecs->holes[holeIdx].boxDirY = 0;
 
     holeChangeSprite(holeIdx, holeX, holeY, tileMap, ecs);
 }

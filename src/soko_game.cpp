@@ -9,6 +9,7 @@
 #include "goal.cpp"
 #include "tilemap.cpp"
 #include "hole.cpp"
+#include "undo.cpp"
 
 #include "entity.h"
 #include "components.h"
@@ -148,7 +149,9 @@ int main() {
         .storedType = NO_BOX,
         .boxDirX = 0,
         .boxDirY = 0,
-        .boxId = -1
+        .boxId = -1,
+        .baseAtlasX = 11,
+        .baseAtlasY = 0
     };
     ecsAddPosition(eIdQ.currentId, &tilePosition, &ecs); 
     ecsAddHole(eIdQ.currentId, &hole, &ecs);
@@ -158,6 +161,9 @@ int main() {
     SetRandomSeed(GetTime() * 1000);
     ecsZSort(&ecs);
     gridUpdateWithECS(&ecs, &grid);
+
+    UndoHistory undoHistory;
+    undoInit(INITIAL_UNDOS, &undoHistory);
 
     // adding to the renderers
     for (int i = 0; i < ecs.renderSet.size; i++) {
@@ -175,7 +181,8 @@ int main() {
             case PLAYER:
                 // Update
                 renderUpdateAnimations(&ecs);
-                inputUpdatePlayerMove(&ecs, &grid, &tileMap, &gameState);
+                inputUpdatePlayerUndo(&ecs, &grid, &tileMap, &gameState, &undoHistory);
+                inputUpdatePlayerMove(&ecs, &grid, &tileMap, &gameState, &undoHistory);
                 renderUpdateOffsets(&ecs);
 
                 // Draw
@@ -228,6 +235,7 @@ int main() {
     }
 
     UnloadTexture(atlas);
+    undoFree(&undoHistory);
     tilemapFree(&tileMap);
     gridFree(&grid);
     ecsFree(&ecs);

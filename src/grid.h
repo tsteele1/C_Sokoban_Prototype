@@ -2,6 +2,7 @@
 #define GRID_H
 #include "ecs.h"
 #include "tilemap.h"
+#include "undo_history.h"
 
 struct Grid {
     int *map;
@@ -35,7 +36,7 @@ bool gridWalkableMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, G
 
 bool gridBoxAtMap(int x, int y, ECS *ecs, Grid *grid);
 
-void gridPushBoxesWorld(int x, int y, ECS *ecs, TileMap *tileMap, Grid *grid);
-void gridPushBoxesMap(int x, int y, ECS *ecs, TileMap *tileMap, Grid *grid);
+void gridPushBoxesWorld(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid, UndoHistory *undoHistory);
+void gridPushBoxesMap(int x, int y, int dx, int dy, ECS *ecs, TileMap *tileMap, Grid *grid, UndoHistory *undoHistory);
 
 #endif

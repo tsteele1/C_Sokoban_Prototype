@@ -1,9 +1,14 @@
 #ifndef COMPONENTS_H
 #define COMPONENTS_H
+
 #define MAX_ANIMS 4
 #define MAX_ANIM_FRAMES 4
+
 #define WALK_TIME 0.125
 #define BUMP_TIME 0.250
+
+#define BASE_HOLE_X 11
+#define BASE_HOLE_Y 0
 
 struct Frame {
     float atlasX;
@@ -65,5 +70,7 @@ struct Hole {
     int boxDirX;
     int boxDirY;
     int boxId;
+    float baseAtlasX;
+    float baseAtlasY;
 };
 #endif
