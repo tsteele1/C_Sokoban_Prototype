@@ -25,14 +25,6 @@
 //        to load in those prefabs and add info the prefab wouldn't have.
 //          - For example, almost every entity in the game will have a
 //            preset renderer, a preset animator, a preset pushable, etc.
-//  2. Undo:
-//      - Store the position of every entity with a history component at a 
-//        given step.
-//      - When the player presses undo, update the grid and ecs so that all
-//        entities were in the position they were previously in.
-//          - You will also have to store when the hole was filled with a box,
-//            and then when that time passes, you will have to undo the box
-//            being in the hole.
 //  3. Screen Sizing:
 //      - Set a reference resolution as a constant.
 //      - Allow the player to change the screen size, and multiply everything
