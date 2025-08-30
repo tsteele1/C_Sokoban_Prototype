@@ -15,6 +15,14 @@ struct Frame {
     float atlasY;
 };
 
+
+enum AnimType {
+    DOWN,
+    UP,
+    LEFT,
+    RIGHT
+};
+
 struct Animator {
     Frame animations[MAX_ANIMS][MAX_ANIM_FRAMES];
     int framesPerAnim[MAX_ANIMS];

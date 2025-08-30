@@ -114,3 +114,40 @@ void renderUpdateAnimations(ECS *ecs) {
         ecs->animators[i].frameIdx = (int) (animTime * framesPerAnim);
     }
 }
+
+void renderUpdateAnimIdx(int entityId, int dx, int dy, ECS *ecs) {
+    int animatorIdx = ecs->animSet.sparse[entityId];
+
+    if (animatorIdx < 0) return;
+
+    if (dx < 0) {
+        ecs->animators[animatorIdx].animIdx = (int) LEFT;
+    }
+    else if (dx > 0) {
+        ecs->animators[animatorIdx].animIdx = (int) RIGHT;
+    }
+    else if (dy < 0) {
+        ecs->animators[animatorIdx].animIdx = (int) UP;
+    }
+    else if (dy > 0) {
+        ecs->animators[animatorIdx].animIdx = (int) DOWN;
+    }
+}
+
+void renderUpdateAnimIdxUndo(int entityId, int dx, int dy, ECS *ecs) {
+    int animatorIdx = ecs->animSet.sparse[entityId];
+    if (animatorIdx < 0) return;
+
+    if (dx < 0) {
+        ecs->animators[animatorIdx].animIdx = (int) RIGHT;    
+    }
+    else if (dx > 0) {
+        ecs->animators[animatorIdx].animIdx = (int) LEFT;
+    }
+    else if (dy < 0) {
+        ecs->animators[animatorIdx].animIdx = (int) DOWN;
+    }
+    else if (dy > 0) {
+        ecs->animators[animatorIdx].animIdx = (int) UP;
+    }
+}

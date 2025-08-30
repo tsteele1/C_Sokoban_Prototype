@@ -16,5 +16,7 @@ void renderDrawSprites(Texture *atlas, ECS *ecs, Grid *grid);
 void renderUpdateOffsets(ECS *ecs);
 void renderUpdateAnimations(ECS *ecs);
 void renderDrawTilemap(Texture *atlas, TileMap *tileMap);
+void renderUpdateAnimIdx(int entityId, int dx, int dy, ECS *ecs);
+void renderUpdateAnimIdxUndo(int entityId, int dx, int dy, ECS *ecs);
 
 #endif

@@ -1,4 +1,5 @@
 #include "input.h"
+#include "render.h"
 #include <iostream>
 
 void inputUpdatePlayerUndo(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *state, UndoHistory *undoHistory) {
@@ -33,7 +34,7 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
             ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
             ecs->renderers[renderIdx].moveAnimType = BUMP;
         }
-        ecs->animators[ecs->animSet.sparse[0]].animIdx = 3;
+        renderUpdateAnimIdx(0, DX, 0, ecs);
     }
     else if (IsKeyPressed(KEY_LEFT)) {
         if (gridPushableMap(playerX, playerY, -DX, 0, playerDepth, ecs, tileMap, grid)) {
@@ -47,7 +48,7 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
             ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
             ecs->renderers[renderIdx].moveAnimType = BUMP;
         }
-        ecs->animators[ecs->animSet.sparse[0]].animIdx = 2;
+        renderUpdateAnimIdx(0, -DX, 0, ecs);
     } 
     else if (IsKeyPressed(KEY_UP)) {
         if (gridPushableMap(playerX, playerY, 0, -DY, playerDepth, ecs, tileMap, grid)) {
@@ -61,7 +62,8 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
             ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
             ecs->renderers[renderIdx].moveAnimType = BUMP;
         }
-        ecs->animators[ecs->animSet.sparse[0]].animIdx = 1;
+        renderUpdateAnimIdx(0, 0, -DY, ecs);
+        ecs->animators[ecs->animSet.sparse[0]].animIdx = (int) UP;
     }
     else if (IsKeyPressed(KEY_DOWN)) {
         if (gridPushableMap(playerX, playerY, 0, DY, playerDepth, ecs, tileMap, grid)) { 
@@ -75,7 +77,7 @@ void inputUpdatePlayerMove(ECS *ecs, Grid *grid, TileMap *tileMap, GameState *st
             ecs->renderers[renderIdx].maxMoveAnimTime = BUMP_TIME;
             ecs->renderers[renderIdx].moveAnimType = BUMP;
         }
-        ecs->animators[ecs->animSet.sparse[0]].animIdx = 0;
+        renderUpdateAnimIdx(0, 0, DY, ecs);
     }
 
     if (keyPressed) {

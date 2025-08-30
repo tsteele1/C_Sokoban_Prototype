@@ -1,5 +1,6 @@
 #include "undo.h"
 #include "hole.h"
+#include "render.h"
 #include <stdlib.h>
 #define INITIAL_UNDOS 1000
 #define HISTORY_PADDING 100
@@ -72,6 +73,8 @@ void undoToTime(int time, ECS *ecs, Grid *grid, TileMap *tileMap, UndoHistory *u
         ecs->renderers[renderIdx].moveAnimTime = 0;
         ecs->renderers[renderIdx].maxMoveAnimTime = WALK_TIME;
         ecs->renderers[renderIdx].moveAnimType = WALK;
+
+        renderUpdateAnimIdxUndo(move.entityId, -move.dx, -move.dy, ecs);
 
         // upkeep
         undoHistory->size = undoHistory->size - 1 <= 0 ? 0 : undoHistory->size - 1;
